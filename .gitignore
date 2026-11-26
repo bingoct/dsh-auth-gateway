@@ -1,0 +1,23 @@
+# 构建产物
+/dsh-auth-proxy.exe
+dsh-gateway.exe
+*.exe
+*.zip
+
+# 本地配置（模板是唯一例外：它随仓库分发，供 `config init` 使用）
+*.toml
+!config.example.toml
+
+# 运行期产物
+*.log
+*.jsonl
+# 台账、审计、attach 模式的 token 文件：真相源在 ~/.dsh，永不入仓
+sessions.json
+audit.jsonl
+dsh-url.txt
+
+# 编辑器 / 系统
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

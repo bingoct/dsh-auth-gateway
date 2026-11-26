@@ -1,0 +1,2 @@
+# 测试用 mock 后端 URL（无凭据）
+dsh web: http://127.0.0.1:54321/?token=testlaunchtoken123

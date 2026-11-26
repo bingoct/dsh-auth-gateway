@@ -1,0 +1,55 @@
+# dsh-gateway 配置示例。
+# 实际配置在 ~/.dsh/gateway.toml；[credentials] 由 `dsh-auth-proxy init` 写入，不要手工编辑。
+# 环境变量优先于本文件：AUTH_PROXY_HOST / AUTH_PROXY_PORT / AUTH_DSH_* / AUTH_SESSION_DAYS ...
+
+[server]
+listen_host = "127.0.0.1"   # 对外由 Traefik/隧道决定；非回环监听必须配 https 的 public_origin
+listen_port = 33080
+
+[dsh]
+host = "127.0.0.1"
+port = 0                    # 0 = 由系统分配，网关从 dsh 打印的 URL 里解析真实端口
+profile = "web"
+bin = ""                    # 留空 = <USERPROFILE>/scoop/apps/dsh/current/lib/bin.js
+cwd = ""                    # 留空 = <USERPROFILE>/WorkBuddy/dsh
+node_bin = ""               # 留空 = PATH 上的 node
+extra_args = []             # dsh 新增的 flag 写这里，无需改代码
+ready_ms = 90000            # 等 dsh 打印启动 token 的上限
+ensure_wait_ms = 20000      # 单次请求最多等多久就绪，超时返回"正在启动"页
+idle_reap = false           # 自动回收开关；默认关闭
+idle_min = 30               # 仅在 idle_reap = true 时生效
+attach = false              # true = 不拉起 dsh，从 token_file 读外部实例的 URL
+token_file = ""
+
+[auth]
+# 两档时效：idle（多久不用就失效，滑动）+ abs（从登录起最久，硬顶）。
+# abs 必须显著大于 idle，否则没有滑动空间。
+session_days = 14            # 持久设备：闲置多少天失效
+session_abs_max_days = 30    # 持久设备：从登录起最长多少天
+temp_hours = 2               # 临时设备：闲置多少小时失效
+temp_abs_hours = 6           # 临时设备：从登录起最长多少小时
+
+# 代数轮换：每隔这么久换一代 cookie，旧票立即作废。
+# 它把"cookie 被动泄露后的可用窗口"从 abs 压到 rotate 周期，必须小于对应的 idle。
+rotate_temp_min = 30         # 临时档轮换周期（分钟）
+rotate_persist_hours = 24    # 持久档轮换周期（小时）
+
+public_origin = "https://example.com"  # 必填，改成你的真实域名；决定 cookie Secure 与来源校验基准
+
+session_store_path = ""      # 设备台账路径；留空 = ~/.dsh/sessions.json
+tunnel_idle_sec = 60         # WS 空闲超时（秒）：这么久没有任何字节就断开重连
+tunnel_max_min = 30          # 隧道最长寿命（分钟），到点断开逼重连并重新认证；0=不限
+audit_log_path = ""          # 审计 JSONL 追加路径；留空 = ~/.dsh/audit.jsonl；"off" = 不记
+
+[network]
+trust_proxy = false         # 只有确实有可信反代时才打开
+proxy_trusted = "172.16.0.0/12,10.0.0.0/8,192.168.0.0/16"
+local_cidrs = "127.0.0.0/8,::1/128"   # 这些来源免认证
+
+[rate]
+window_min = 15
+max_fails = 8
+ban_min = 15
+
+[paths]
+home = ""                   # 留空 = $DSH_HOME 或 ~/.dsh
